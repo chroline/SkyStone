@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -29,7 +30,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
-public class Autonomy extends LinearOpMode {
+@Autonomous(name="autotest1 yay", group="Game Controller")
+public class autotest1 extends LinearOpMode {
     boolean parkBridgeSide     = false;
     WeirdWheels.Side side      = WeirdWheels.Side.LEFT;
     boolean execCollectStones  = false;
@@ -37,32 +39,18 @@ public class Autonomy extends LinearOpMode {
 
     private WeirdWheels wheels;
 
-    private ManyMotors intake;
-    private boolean intakeBtn;
-    private boolean intakeOpen;
-
-    private AwesomeArm arm;
-    private boolean grippersBtn;
-
-    private SeveralServos bulldozer;
-
-    private int dToFoundation           = 0; // TODO: add y value to move wheels TO foundation
-    private int dToBelowFoundation      = 0; // TODO: add x value to go below foundation
-    private int dToBottomFromResetPos   = 0; // TODO: add distance to bottom from reset position
-    private int dToBottomFromLoadingPos = 0; // TODO: add distance to bottom from load only position
-    private int dToStone                = 0; // TODO: add distance to approach skystone
-
-    private int stonesFound = 0;
-
-    private int difTicks = 0;
-
-    private List<VuforiaTrackable> allTrackables;
+    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
+    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
+    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+            (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double     DRIVE_SPEED             = 0.2;
+    static final double     TURN_SPEED              = 0.5;
 
     @Override
     public void runOpMode() throws InterruptedException
     {
-        //registerMotors();
-        registerVuforia();
+        registerMotors();
 
         telemetry.addData("Robob says","I'm Ready!");
         telemetry.update();
@@ -70,71 +58,21 @@ public class Autonomy extends LinearOpMode {
         // After we are done initializing our code, we wait for Start button.
         waitForStart();
 
-        if(execCollectStones) {
-            collectStones();
-            wheels.moveTo(-(dToBottomFromResetPos-difTicks),0);
-            pukeStone();
-        }
-        if(execMoveFoundation) moveFoundation();
+        /*wheels.moveTo(0,3000);
 
-        if(execCollectStones) {
-            collectStones();
-            wheels.moveTo(-(dToBottomFromResetPos-difTicks),0);
-            pukeStone();
-        }
+        while (opModeIsActive() && wheelsBusy())
+        {
+            telemetry.addData("Robob says","I am moving");
+            telemetry.update();
+            idle();
+        }*/
+        //encoderDrive(DRIVE_SPEED, 0, 2, 4.0);
+
+        wheels.setVelocityY(1);
+        wheels.moveMecanum();
+        Thread.sleep(2000);
+        wheels.stop();
     }
-
-    public void registerVuforia() {
-
-        final String VUFORIA_KEY =
-                "AR23ZAD/////AAABmRQ39GR6pk5noX6VjfkWqkQrfstU6L6wCyclUiJChoh4AjSZ+8sBCWr7kooyawF+1YArwQSfZ5FPazPgEPN3aJCdA5ouzDJtlPjl9MKLT9PMdEsyJCtxxhgVJPVcK59dYh/23JPmDyOihWfHzuzJtXjWF8jZfBverhcvfIXaleAr2u7Zq47hAs/m9jRQb2f4PwNnYdvx6lcqm1JNM1pLNnl2ckA4H5zf4Skdme5EdFLxQ+31k/nQSZxq+P3FmvxB7qML8GSJczWdOu+n5SL4ZqeJYCmS1Ur8XFK5H+KmK1EobTi2p0Hn6K3vyJ4MZzCWnsOvKQRFqWva/ty4CmXoqdBpojYWFlDwoSMshIntv5yS";
-
-        final float mmPerInch = 25.4f;
-
-        final float stoneZ = 2.00f * mmPerInch;
-
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-
-        parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraDirection   = BACK;
-
-        // Class Members
-        VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
-        float phoneXRotate    = 0;
-        float phoneYRotate    = -90;
-        float phoneZRotate    = 0;
-
-        VuforiaTrackables targetsSkyStone = vuforia.loadTrackablesFromAsset("Skystone");
-
-        VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
-        stoneTarget.setName("Stone Target");
-
-        allTrackables = new ArrayList<VuforiaTrackable>(targetsSkyStone);
-
-        // Set the position of the Stone Target.  Since it's not fixed in position, assume it's at the field origin.
-        // Rotated it to to face forward, and raised it to sit on the ground correctly.
-        // This can be used for generic target-centric approach algorithms
-        stoneTarget.setLocation(OpenGLMatrix
-                .translation(0, 0, stoneZ)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
-
-        // Next, translate the camera lens to where it is on the robot.
-        // In this example, it is centered (left to right), but forward of the middle of the robot, and above ground level.
-        final float CAMERA_FORWARD_DISPLACEMENT  = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT     = 0;     // eg: Camera is ON the robot's center line
-
-        OpenGLMatrix robotFromCamera = OpenGLMatrix
-                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, phoneYRotate, phoneZRotate, phoneXRotate));
-
-        //  Let all the trackable listeners know where the phone is.
-        for (VuforiaTrackable trackable : allTrackables) {
-            ((VuforiaTrackableDefaultListener) trackable.getListener()).setPhoneInformation(robotFromCamera, parameters.cameraDirection);
-        }
-        targetsSkyStone.activate();
-    }
-
     public void registerMotors() {
         SharedTelemetry.telemetry = telemetry;
 
@@ -146,128 +84,75 @@ public class Autonomy extends LinearOpMode {
         DcMotor bl = hardwareMap.get(DcMotor.class, "bl");
         DcMotor br = hardwareMap.get(DcMotor.class, "br");
         List<DcMotor> wheelList = new ArrayList<>(Arrays.asList(fl, fr, bl, br));
+
         this.wheels = new WeirdWheels(wheelList);
         this.wheels.setSide(this.side);
 
-        // intake
-        DcMotor i1 = hardwareMap.get(DcMotor.class, "i1");
-        DcMotor i2 = hardwareMap.get(DcMotor.class, "i2");
-        List<DcMotor> intakeList = new ArrayList<>(Arrays.asList(i1,i2));
-        this.intake = new ManyMotors(intakeList);
+        fl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        fr.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        bl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        // arm
-        DcMotor shoulder     = hardwareMap.get(DcMotor.class, "shoulder");
-        DcMotor actuator     = hardwareMap.get(DcMotor.class, "actuator");
-        CRServo elbow        = hardwareMap.crservo.get("elbow");
-        Servo lGrip          = hardwareMap.get(Servo.class, "lGrip");
-        Servo rGrip          = hardwareMap.get(Servo.class, "rGrip");
-        List<Servo> grippers = new ArrayList<>(Arrays.asList(lGrip,rGrip));
-        this.arm = new AwesomeArm(shoulder,actuator,elbow,grippers);
-
-        Servo lbd = hardwareMap.get(Servo.class, "lbd");
-        Servo rbd = hardwareMap.get(Servo.class, "rbd");
-        List<Servo> bdList = new ArrayList<>(Arrays.asList(lbd,rbd));
-        this.bulldozer = new SeveralServos(bdList);
+        fl.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        fr.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        bl.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        br.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public void moveFoundation() {
+    public void encoderDrive(double speed,
+                             double xInches, double yInches,
+                             double timeoutS) {
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
 
-        // go to foundation
-        wheels.moveTo(0,dToFoundation);
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","moving to foundation");
-        }
+            // Determine new target position, and pass to motor controller
+            wheels.moveTo((int)(xInches * COUNTS_PER_INCH), (int)(yInches * COUNTS_PER_INCH));
 
-        // bring down bulldozer
-        bulldozer.setPosition(new ArrayList<>(Collections.nCopies(2, 1.0)));
+            // Turn On RUN_TO_POSITION
+            wheels.motors.get(0).setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            wheels.motors.get(1).setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            wheels.motors.get(2).setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            wheels.motors.get(3).setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        // move foundation back
-        wheels.moveTo(0,-dToFoundation);
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","moving foundation to corner");
-        }
+            // reset the timeout time and start motion.
+            wheels.motors.get(0).setPower(Math.abs(speed));
+            wheels.motors.get(1).setPower(Math.abs(speed));
+            wheels.motors.get(2).setPower(Math.abs(speed));
+            wheels.motors.get(3).setPower(Math.abs(speed));
 
-        // go below foundation
-        wheels.moveTo(dToBelowFoundation,0);
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","moving below foundation");
-        }
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() && wheelsBusy()) {
 
-        // go to reset position
-        wheels.moveTo(0, dToFoundation);
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","moving to reset position");
-        }
-    }
-
-    public void collectStones() {
-        if(execMoveFoundation) {
-            wheels.moveTo(dToBottomFromResetPos,0); // TODO: verify distances
-        }
-        else {
-            wheels.moveTo(dToBottomFromLoadingPos, dToFoundation); // TODO: verify distances
-        }
-
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","preparing to collect stones");
-        }
-            int origTicks = wheels.motors.get(0).getCurrentPosition();
-            wheels.setVelocityX(-0.2);
-            wheels.moveMecanum();
-            for (VuforiaTrackable trackable : allTrackables) {
-                if (isStone(trackable)) {
-                    int newTicks = wheels.motors.get(0).getCurrentPosition();
-                    difTicks = Math.abs(origTicks - newTicks);
-                    stonesFound++;
-                    wheels.stop();
-                    VuforiaTrackableDefaultListener stone = (VuforiaTrackableDefaultListener)trackable.getListener();
-                    int z = zAngle(stone);
-                    while(z != 0) {
-                        wheels.setVelocityX(-0.1);
-                        wheels.moveMecanum();
-                        z = zAngle(stone);
-                    }
-                    swallowStone();
-                    break;
-                }
-
+                // Display it for the driver.
+                telemetry.addData("Robob says",  "I am moving");
+                telemetry.update();
             }
-    }
 
-    private boolean isStone(VuforiaTrackable trackable) {
-        return ((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible() && trackable.getName().equals("Stone Target");
-    }
 
-    private int zAngle(VuforiaTrackableDefaultListener stone) {
-        OpenGLMatrix loc = stone.getUpdatedRobotLocation();
-        Orientation rot = Orientation.getOrientation(loc, EXTRINSIC, XYZ, DEGREES);
-        return (int)rot.thirdAngle;
-    }
+            wheels.motors.get(0).setPower(0);
+            wheels.motors.get(1).setPower(0);
+            wheels.motors.get(2).setPower(0);
+            wheels.motors.get(3).setPower(0);
 
-    private void swallowStone() {
-        wheels.moveTo(0,dToStone);
-        while (wheelsBusy()) {
-            telemetry.addData("Robob is","approaching skystone");
-        }
-
-        /*
-        TODO: add ability to swallow stones
-         */
-
-        wheels.moveTo(0,-dToStone);
-        while (wheelsBusy()) {
-            telemetry.addData("Robob is","backing away from skystone");
+            // Turn off RUN_TO_POSITION
+            /*wheels.motors.get(0).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            wheels.motors.get(1).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            wheels.motors.get(2).setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            wheels.motors.get(3).setMode(DcMotor.RunMode.RUN_USING_ENCODER);*/
         }
     }
-    private void pukeStone() {
-        /*
-        TODO: add ability to puke stones
-         */
-    }
-
-    public void park() {}
 
     private boolean wheelsBusy() {
-        return wheels.motors.get(0).isBusy();
+        telemetry.addData("motor0",wheels.motors.get(0).getCurrentPosition());
+        telemetry.addData("motor1",wheels.motors.get(1).getCurrentPosition());
+        telemetry.addData("motor2",wheels.motors.get(2).getCurrentPosition());
+        telemetry.addData("motor3",wheels.motors.get(3).getCurrentPosition());
+        telemetry.update();
+        return wheels.motors.get(0).isBusy()||wheels.motors.get(1).isBusy();
     }
 }

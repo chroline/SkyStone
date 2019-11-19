@@ -2,11 +2,11 @@ package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name="Left_Foundation_Bridge", group="Game Controller")
-public class Left_Park_Bridge extends Autonomy
+@Autonomous(name="Left_Park_Wall", group="Game Controller")
+public class Left_Park_Wall extends Autonomy
 {
-    public Left_Park_Bridge() {
-        parkBridgeSide = true;
+    public Left_Park_Wall() {
+        parkBridgeSide = false;
         execCollectStones = true;
         execMoveFoundation = false;
     }

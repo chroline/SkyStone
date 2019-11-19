@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -29,7 +30,7 @@ public class Robob extends OpMode
     private AwesomeArm arm;
     private boolean grippersBtn;
 
-    private SeveralServos bulldozer;
+    private Servo bulldozer;
     private boolean bulldozerBtn;
     private boolean bulldozerDown;
 
@@ -63,7 +64,7 @@ public class Robob extends OpMode
         // arm
         DcMotor shoulder     = hardwareMap.get(DcMotor.class, "shoulder");
         DcMotor actuator     = hardwareMap.get(DcMotor.class, "actuator");
-        Servo elbow          = hardwareMap.get(Servo.class, "elbow");
+        CRServo elbow        = hardwareMap.crservo.get("elbow");
         Servo lGrip          = hardwareMap.get(Servo.class, "lGrip");
         Servo rGrip          = hardwareMap.get(Servo.class, "rGrip");
         lGrip.setDirection(Servo.Direction.REVERSE);
@@ -84,11 +85,9 @@ public class Robob extends OpMode
         i.setPower(0);
         i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        Servo lbd                 = hardwareMap.get(Servo.class, "lbd");
-        Servo rbd                 = hardwareMap.get(Servo.class, "rbd");
-        lbd.setDirection(Servo.Direction.REVERSE);
-        List<Servo> bulldozerList = new ArrayList<>(Arrays.asList(lbd,rbd));
-        this.bulldozer = new SeveralServos(bulldozerList);
+        Servo bd                 = hardwareMap.get(Servo.class, "bd");
+        bd.setDirection(Servo.Direction.FORWARD);
+        this.bulldozer = bd;
 
         this.door = hardwareMap.get(Servo.class, "door");
     }
@@ -98,11 +97,6 @@ public class Robob extends OpMode
      */
     @Override
     public void loop() {
-
-        telemetry.addData("grip1p",arm.grippers.get(0).getPosition());
-        telemetry.addData("grip2p",arm.grippers.get(1).getPosition());
-        telemetry.addData("act",arm.actuator.getCurrentPosition());
-
         wheelControl();
         intakeControl();
         armControl();
@@ -129,7 +123,7 @@ public class Robob extends OpMode
     }
 
     private void intakeControl() {
-        boolean a = gamepad2.a;
+        boolean a = gamepad1.a;
         if(a && a != intakeBtn) {
             intakeOpen = !intakeOpen;
         }
@@ -140,16 +134,14 @@ public class Robob extends OpMode
         } else {
             intake.move(new ArrayList<>(Collections.nCopies(2, 0.0)));
         }
-
     }
 
     private void armControl() {
         double shoulderPwr = gamepad2.left_stick_y;
-        arm.moveShoulder(shoulderPwr/5);
+        arm.moveShoulder(shoulderPwr*0.6);
 
         double actuatorUp = gamepad2.right_trigger-gamepad2.left_trigger;
         arm.moveActuator(actuatorUp);
-        telemetry.addData("pos",arm.actuatorPos);
 
         double elbowPwr = gamepad2.right_stick_y;
         arm.moveElbow(elbowPwr);
@@ -159,7 +151,6 @@ public class Robob extends OpMode
             arm.toggleGrippers();
         }
         grippersBtn = b;
-        telemetry.addData("open",arm.grippersOpen);
     }
 
     private void bulldozerControl() {
@@ -170,13 +161,13 @@ public class Robob extends OpMode
         bulldozerBtn = y;
 
         if(bulldozerDown) {
-            bulldozer.setPosition(new ArrayList<>(Collections.nCopies(2, 0.2)));
+            bulldozer.setPosition(0.3);
         } else {
-            bulldozer.setPosition(new ArrayList<>(Collections.nCopies(2, 1.0)));
+            bulldozer.setPosition(0.8);
         }
 
         if(gamepad1.dpad_up) {
-            bulldozer.setPosition(new ArrayList<>(Collections.nCopies(2, 0.0)));
+            bulldozer.setPosition(0);
         }
     }
 
@@ -188,7 +179,7 @@ public class Robob extends OpMode
         doorBtn = x;
 
         if(doorDown) {
-            door.setPosition(0.5);
+            door.setPosition(0.4);
         } else {
             door.setPosition(0.0);
         }

@@ -30,6 +30,7 @@ public class ManyMotors {
             Double value = values.get(i);
             DcMotor motor = motors.get(i);
             motor.setPower(value);
+            SharedTelemetry.telemetry.addData("motor"+i,motor.getCurrentPosition());
         }
     }
 

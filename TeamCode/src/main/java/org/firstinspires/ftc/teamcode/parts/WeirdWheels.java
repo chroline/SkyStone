@@ -46,14 +46,14 @@ public class WeirdWheels extends ManyMotors {
     public void moveMecanum() {
         //calculate motor powers
 
-        double fl =  velocityY + velocityX - velocityR;
-        double fr = -velocityY + velocityX - velocityR;
-        double bl =  velocityY + velocityX + velocityR;
-        double br =  velocityY - velocityX - velocityR;
+        double fl =  velocityY - velocityX - velocityR;
+        double fr = -velocityY - velocityX - velocityR;
+        double bl =  velocityY - velocityX + velocityR;
+        double br =  velocityY + velocityX - velocityR;
 
         SharedTelemetry.telemetry.addData("fl",fl);
-        SharedTelemetry.telemetry.addData("bl",bl);
         SharedTelemetry.telemetry.addData("fr",fr);
+        SharedTelemetry.telemetry.addData("bl",bl);
         SharedTelemetry.telemetry.addData("br",br);
 
         move(Arrays.asList(fl, fr*0.8, bl, br));
@@ -136,10 +136,10 @@ public class WeirdWheels extends ManyMotors {
      */
     public void moveTo(int x, int y) {
 
-        int fl = xNegator*x + y;
-        int fr = xNegator*x - y;
-        int bl = xNegator*x - y;
-        int br = xNegator*x + y;
+        int fl =  y-xNegator*x;
+        int fr = -y-xNegator*x;
+        int bl =  y-xNegator*x;
+        int br =  y+xNegator*x;
 
         List<Integer> amnts = Arrays.asList(fl, fr, bl, br);
 
@@ -151,5 +151,10 @@ public class WeirdWheels extends ManyMotors {
 
             motorNum++;
         }
+    }
+
+    public void stop() {
+        setVelocityXYR(0,0,0);
+        super.stop();
     }
 }

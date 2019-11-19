@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -43,21 +44,30 @@ public class Autonomy extends LinearOpMode {
     private AwesomeArm arm;
     private boolean grippersBtn;
 
-    private SeveralServos bulldozer;
+    private Servo bulldozer;
 
+    /*
     private int dToFoundation           = 0; // TODO: add y value to move wheels TO foundation
     private int dToBelowFoundation      = 0; // TODO: add x value to go below foundation
     private int dToBottomFromResetPos   = 0; // TODO: add distance to bottom from reset position
     private int dToBottomFromLoadingPos = 0; // TODO: add distance to bottom from load only position
     private int dToStone                = 0; // TODO: add distance to approach skystone
 
+    private int stonesFound = 0;
+
+    private int difTicks = 0;
+    */
+
+    private int timePerInch = 40;
+    private int xNegator = 1;
+
     private List<VuforiaTrackable> allTrackables;
 
     @Override
     public void runOpMode() throws InterruptedException
     {
-        //registerMotors();
-        registerVuforia();
+        registerMotors();
+        //registerVuforia();
 
         telemetry.addData("Robob says","I'm Ready!");
         telemetry.update();
@@ -65,8 +75,60 @@ public class Autonomy extends LinearOpMode {
         // After we are done initializing our code, we wait for Start button.
         waitForStart();
 
-        if(execMoveFoundation) moveFoundation();
-        if(execCollectStones) collectStones();
+        if(this.side == WeirdWheels.Side.LEFT) xNegator = -1;
+        else xNegator = 1;
+
+        if(execMoveFoundation) {
+            moveFoundation();
+        }
+
+        Thread.sleep(23000);
+
+        // go below foundation
+        telemetry.addData("Robob is","moving away from foundation");
+        telemetry.update();
+        wheels.setVelocityX(xNegator*1);
+        wheels.moveMecanum();
+        Thread.sleep( 12 * timePerInch );
+        wheels.stop();
+
+        Thread.sleep(500);
+
+        if(parkBridgeSide) {
+            // go to bridge side
+            telemetry.addData("Robob is", "moving to bridge side");
+            telemetry.update();
+            wheels.setVelocityY((execMoveFoundation)?1:-1);
+            wheels.moveMecanum();
+            Thread.sleep(24 * timePerInch);
+            wheels.stop();
+
+            Thread.sleep(500);
+        }
+
+        if((execMoveFoundation && side == WeirdWheels.Side.LEFT) || (!execMoveFoundation) && side == WeirdWheels.Side.RIGHT) {
+            // rotate
+            telemetry.addData("Robob is","rotating");
+            telemetry.update();
+            wheels.setVelocityR(-xNegator*1);
+            wheels.moveMecanum();
+            Thread.sleep( 42 * timePerInch );
+            wheels.stop();
+
+            Thread.sleep(500);
+
+            xNegator = -xNegator;
+        }
+
+        // move onto line
+        telemetry.addData("Robob is","moving to line yay!");
+        telemetry.update();
+        wheels.setVelocityX(xNegator*1);
+        wheels.moveMecanum();
+        Thread.sleep( 22 * timePerInch );
+        wheels.stop();
+
+        //wheels.moveTo(-(dToBottomFromResetPos-difTicks),0);
     }
 
     public void registerVuforia() {
@@ -143,90 +205,118 @@ public class Autonomy extends LinearOpMode {
         // arm
         DcMotor shoulder     = hardwareMap.get(DcMotor.class, "shoulder");
         DcMotor actuator     = hardwareMap.get(DcMotor.class, "actuator");
-        Servo elbow          = hardwareMap.get(Servo.class, "elbow");
+        CRServo elbow        = hardwareMap.crservo.get("elbow");
         Servo lGrip          = hardwareMap.get(Servo.class, "lGrip");
         Servo rGrip          = hardwareMap.get(Servo.class, "rGrip");
         List<Servo> grippers = new ArrayList<>(Arrays.asList(lGrip,rGrip));
         this.arm = new AwesomeArm(shoulder,actuator,elbow,grippers);
 
-        Servo lbd = hardwareMap.get(Servo.class, "lbd");
-        Servo rbd = hardwareMap.get(Servo.class, "rbd");
-        List<Servo> bdList = new ArrayList<>(Arrays.asList(lbd,rbd));
-        this.bulldozer = new SeveralServos(bdList);
+        Servo bd                 = hardwareMap.get(Servo.class, "bd");
+        bd.setDirection(Servo.Direction.REVERSE);
+        this.bulldozer = bd;
     }
 
-    public void moveFoundation() {
+    public void moveFoundation() throws InterruptedException {
+        // slide to foundation middle
+        telemetry.addData("Robob is","moving to middle of foundation");
+        telemetry.update();
+        wheels.setVelocityX(xNegator*1);
+        wheels.moveMecanum();
+        Thread.sleep( 8 * timePerInch );
+        wheels.stop();
+
+        Thread.sleep(500);
+
+        // prepare to rotate
+        telemetry.addData("Robob is","preparing to rotate");
+        telemetry.update();
+        wheels.setVelocityY(-1);
+        wheels.moveMecanum();
+        Thread.sleep( 10 * timePerInch );
+        wheels.stop();
+
+        Thread.sleep(500);
+
+        // rotate
+        telemetry.addData("Robob is","rotating");
+        telemetry.update();
+        wheels.setVelocityR(xNegator*1);
+        wheels.moveMecanum();
+        Thread.sleep( 42 * timePerInch );
+        wheels.stop();
+
+        Thread.sleep(500);
 
         // go to foundation
-        wheels.moveTo(0,dToFoundation);
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","moving to foundation");
-        }
+        telemetry.addData("Robob is","moving to foundation");
+        telemetry.update();
+        wheels.setVelocityY(1);
+        wheels.moveMecanum();
+        Thread.sleep( 13 * timePerInch );
+        wheels.stop();
+
+        Thread.sleep(500);
 
         // bring down bulldozer
-        bulldozer.setPosition(new ArrayList<>(Collections.nCopies(2, 1.0)));
+        telemetry.addData("Robob is","bringing bulldozer down");
+        telemetry.update();
+        bulldozer.setPosition(0.5);
+
+        Thread.sleep(1000);
 
         // move foundation back
-        wheels.moveTo(0,-dToFoundation);
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","moving foundation to corner");
-        }
+        telemetry.addData("Robob is","backing foundation back");
+        telemetry.update();
+        wheels.setVelocityY(-1);
+        wheels.moveMecanum();
+        Thread.sleep( 42 * timePerInch );
+        wheels.stop();
 
-        // go below foundation
-        wheels.moveTo(dToBelowFoundation,0);
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","moving below foundation");
-        }
+        Thread.sleep(500);
 
-        // go to reset position
-        wheels.moveTo(0, dToFoundation);
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","moving to reset position");
-        }
+        // bring up bulldozer
+        telemetry.addData("Robob is","bringing bulldozer up");
+        telemetry.update();
+        bulldozer.setPosition(0);
+
+        Thread.sleep(1000);
+
+        // slide from foundation middle
+        telemetry.addData("Robob is","moving from middle of foundation");
+        telemetry.update();
+        wheels.setVelocityX(xNegator*1);
+        wheels.moveMecanum();
+        Thread.sleep( 16 * timePerInch );
+        wheels.stop();
+
+        Thread.sleep(500);
     }
 
-    public void collectStones() {
-        if(execMoveFoundation) {
-            wheels.moveTo(dToBottomFromResetPos,0); // TODO: verify distances
-        }
-        else {
-            wheels.moveTo(dToBottomFromLoadingPos, dToFoundation); // TODO: verify distances
-        }
+    /*public void collectStones() {
+        int origTicks = wheels.motors.get(0).getCurrentPosition();
+        wheels.setVelocityX(-0.2);
+        wheels.moveMecanum();
 
-        while(wheelsBusy()) {
-            telemetry.addData("Robob is","preparing to collect stones");
-        }
-
-        int stonesFound = 0;
-        while (stonesFound < 2) {
-            int origTicks = wheels.motors.get(0).getCurrentPosition();
-            wheels.setVelocityX(-0.2);
-            wheels.moveMecanum();
-            for (VuforiaTrackable trackable : allTrackables) {
-                if (isStone(trackable)) {
-                    int newTicks = wheels.motors.get(0).getCurrentPosition();
-                    int difTicks = Math.abs(origTicks - newTicks);
-                    stonesFound++;
-                    wheels.stop();
-                    VuforiaTrackableDefaultListener stone = (VuforiaTrackableDefaultListener)trackable.getListener();
-                    int z = zAngle(stone);
-                    while(z != 0) {
-                        wheels.setVelocityX(-0.1);
-                        wheels.moveMecanum();
-                        z = zAngle(stone);
-                    }
-                    swallowStone();
-                    wheels.moveTo(-(dToBottomFromResetPos-difTicks),0);
-                    pukeStone();
-                    wheels.moveTo(dToBottomFromResetPos,0);
-                    break;
+        for (VuforiaTrackable trackable : allTrackables) {
+            if (isStone(trackable)) {
+                int newTicks = wheels.motors.get(0).getCurrentPosition();
+                difTicks = Math.abs(origTicks - newTicks);
+                stonesFound++;
+                wheels.stop();
+                VuforiaTrackableDefaultListener stone = (VuforiaTrackableDefaultListener)trackable.getListener();
+                int z = zAngle(stone);
+                while(z != 0) {
+                    wheels.setVelocityX(-0.1);
+                    wheels.moveMecanum();
+                    z = zAngle(stone);
                 }
-
+                swallowStone();
+                break;
             }
         }
-    }
+    }*/
 
-    private boolean isStone(VuforiaTrackable trackable) {
+    /*private boolean isStone(VuforiaTrackable trackable) {
         return ((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible() && trackable.getName().equals("Stone Target");
     }
 
@@ -234,28 +324,25 @@ public class Autonomy extends LinearOpMode {
         OpenGLMatrix loc = stone.getUpdatedRobotLocation();
         Orientation rot = Orientation.getOrientation(loc, EXTRINSIC, XYZ, DEGREES);
         return (int)rot.thirdAngle;
-    }
+    }*/
 
-    private void swallowStone() {
+    /*private void swallowStone() {
         wheels.moveTo(0,dToStone);
         while (wheelsBusy()) {
             telemetry.addData("Robob is","approaching skystone");
         }
 
-        /*
-        TODO: add ability to swallow stones
-         */
+        // TODO: add ability to swallow stones
 
         wheels.moveTo(0,-dToStone);
         while (wheelsBusy()) {
             telemetry.addData("Robob is","backing away from skystone");
         }
     }
+
     private void pukeStone() {
-        /*
-        TODO: add ability to puke stones
-         */
-    }
+        // TODO: add ability to puke stones
+    }*/
 
     public void park() {}
 

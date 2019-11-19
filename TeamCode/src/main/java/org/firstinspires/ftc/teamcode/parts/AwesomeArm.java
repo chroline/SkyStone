@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -14,14 +15,15 @@ import org.firstinspires.ftc.teamcode.util.glob.SharedTelemetry;
 public class AwesomeArm {
     public final DcMotor shoulder;
     public final DcMotor actuator;
-    public final Servo elbow;
+    public final CRServo elbow;
     public final List<Servo> grippers;
 
     public boolean grippersOpen = false;
     public int shoulderPos = 0;
     public int actuatorPos = 0;
+    public int elbowPos    = 0;
 
-    public AwesomeArm(DcMotor shoulder, DcMotor actuator, Servo elbow, List<Servo> grippers) {
+    public AwesomeArm(DcMotor shoulder, DcMotor actuator, CRServo elbow, List<Servo> grippers) {
         this.shoulder = shoulder;
         this.actuator = actuator;
         this.elbow    = elbow;
@@ -65,10 +67,12 @@ public class AwesomeArm {
     }
 
     public void moveElbow(double amnt) {
-        double pos = elbow.getPosition();
-        double newPos = pos + amnt/40;
+        amnt = amnt*0.8;
+        int movet = 50;
+        elbowPos += (int)(movet * amnt);
 
-        elbow.setPosition(Range.clip(newPos,-1,1));
+        CRServo i = elbow;
+        elbow.setPower(amnt);
     }
 
     public void toggleGrippers() {

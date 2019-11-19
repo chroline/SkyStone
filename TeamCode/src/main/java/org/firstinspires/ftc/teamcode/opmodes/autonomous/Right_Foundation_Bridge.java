@@ -4,10 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.parts.WeirdWheels;
 
-@Autonomous(name="Right_Bridge", group="Game Controller")
-public class Right_Bridge extends Autonomy
+@Autonomous(name="Right_Foundation_Bridge", group="Game Controller")
+public class Right_Foundation_Bridge extends Autonomy
 {
-    public Right_Bridge() {
+    public Right_Foundation_Bridge() {
         parkBridgeSide = true;
         execCollectStones = true;
         execMoveFoundation = true;
