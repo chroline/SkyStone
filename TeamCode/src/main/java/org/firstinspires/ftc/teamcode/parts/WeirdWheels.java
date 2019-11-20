@@ -136,8 +136,8 @@ public class WeirdWheels extends ManyMotors {
      */
     public void moveTo(int x, int y) {
 
-        int fl =  y-xNegator*x;
-        int fr = -y-xNegator*x;
+        int fl =  y+xNegator*x;
+        int fr =  y-xNegator*x;
         int bl =  y-xNegator*x;
         int br =  y+xNegator*x;
 

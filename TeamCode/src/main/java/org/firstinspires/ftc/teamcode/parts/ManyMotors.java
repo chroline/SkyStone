@@ -35,6 +35,20 @@ public class ManyMotors {
     }
 
     /**
+     * set power to all motors
+     * @param speed
+     */
+    public void setPower(double speed) {
+        //set the motor powers/speeds of each motor]
+
+        for (int i = 0; i < motors.size(); i++) {
+            DcMotor motor = motors.get(i);
+            motor.setPower(speed);
+        }
+    }
+
+
+    /**
      * stop all the motors
      */
     public void stop() {
