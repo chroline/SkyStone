@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.parts.WeirdWheels;
+import org.firstinspires.ftc.teamcode.parts.WackyWheels;
 
 @Autonomous(name="Right_Foundation_Wall", group="Game Controller")
 public class Right_Foundation_Wall extends Autonomy
@@ -12,6 +12,6 @@ public class Right_Foundation_Wall extends Autonomy
         execCollectStones = true;
         execMoveFoundation = true;
 
-        side = WeirdWheels.Side.RIGHT;
+        side = WackyWheels.Side.RIGHT;
     }
 }

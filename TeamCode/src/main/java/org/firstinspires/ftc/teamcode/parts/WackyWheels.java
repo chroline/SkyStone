@@ -2,12 +2,12 @@ package org.firstinspires.ftc.teamcode.parts;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.util.glob.SharedTelemetry;
+import org.firstinspires.ftc.teamcode.util.glob.Shared;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class WeirdWheels extends ManyMotors {
+public class WackyWheels extends MoldovanMotors {
 
     public enum Side {
         LEFT, RIGHT
@@ -22,7 +22,7 @@ public class WeirdWheels extends ManyMotors {
     /**
      * @param motors          the motors
      */
-    public WeirdWheels(List<DcMotor> motors) {
+    public WackyWheels(List<DcMotor> motors) {
         super(motors);
     }
 
@@ -46,17 +46,17 @@ public class WeirdWheels extends ManyMotors {
     public void moveMecanum() {
         //calculate motor powers
 
-        double fl =  velocityY - velocityX - velocityR;
-        double fr = -velocityY - velocityX - velocityR;
-        double bl =  velocityY - velocityX + velocityR;
-        double br =  velocityY + velocityX - velocityR;
+        double fl = velocityR + velocityX + velocityY;
+        double fr = velocityR - velocityX - velocityY;
+        double bl = velocityR - velocityX + velocityY;
+        double br = velocityR + velocityX - velocityY;
 
-        SharedTelemetry.telemetry.addData("fl",fl);
-        SharedTelemetry.telemetry.addData("fr",fr);
-        SharedTelemetry.telemetry.addData("bl",bl);
-        SharedTelemetry.telemetry.addData("br",br);
+        Shared.telemetry.addData("fl",fl);
+        Shared.telemetry.addData("fr",fr);
+        Shared.telemetry.addData("bl",bl);
+        Shared.telemetry.addData("br",br);
 
-        move(Arrays.asList(fl, fr*0.8, bl, br));
+        move(Arrays.asList(fl, fr, bl, br));
     }
 
     /**

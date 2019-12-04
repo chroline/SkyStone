@@ -2,20 +2,20 @@ package org.firstinspires.ftc.teamcode.parts;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.teamcode.util.glob.SharedTelemetry;
+import org.firstinspires.ftc.teamcode.util.glob.Shared;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ManyMotors {
+public class MoldovanMotors {
     // list of motors
     public final List<DcMotor> motors;
 
     /**
      * @param motors        list of motors
      */
-    public ManyMotors(List<DcMotor> motors) {
+    public MoldovanMotors(List<DcMotor> motors) {
         this.motors = motors;
     }
 
@@ -30,7 +30,7 @@ public class ManyMotors {
             Double value = values.get(i);
             DcMotor motor = motors.get(i);
             motor.setPower(value);
-            SharedTelemetry.telemetry.addData("motor"+i,motor.getCurrentPosition());
+            Shared.telemetry.addData("motor"+i,motor.getCurrentPosition());
         }
     }
 

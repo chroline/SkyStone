@@ -2,48 +2,43 @@ package org.firstinspires.ftc.teamcode.opmodes.teleop;
 
 import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.parts.ManyMotors;
-import org.firstinspires.ftc.teamcode.parts.SeveralServos;
-import org.firstinspires.ftc.teamcode.parts.WeirdWheels;
-import org.firstinspires.ftc.teamcode.parts.AwesomeArm;
-import org.firstinspires.ftc.teamcode.util.glob.SharedTelemetry;
+import org.firstinspires.ftc.teamcode.parts.AbsentmindedAfghani;
+import org.firstinspires.ftc.teamcode.parts.MoldovanMotors;
+import org.firstinspires.ftc.teamcode.parts.SillyServos;
+import org.firstinspires.ftc.teamcode.parts.WackyWheels;
+import org.firstinspires.ftc.teamcode.util.glob.Shared;
+import org.firstinspires.ftc.teamcode.util.glob.StupidStateful;
 
 @TeleOp(name="Robob", group="Game Controller")
 public class Robob extends OpMode
 {
-    private WeirdWheels wheels;
+    private WackyWheels wheels;
 
-    private ManyMotors intake;
-    private boolean intakeBtn;
-    private boolean intakeOpen;
+    private MoldovanMotors intake;
+    private StupidStateful intakeState = new StupidStateful<>(false);
+    private boolean        intakeOn    = false;
 
-    private AwesomeArm arm;
-    private boolean grippersBtn;
+    private AbsentmindedAfghani arm;
 
-    private Servo bulldozer;
-    private boolean bulldozerBtn;
-    private boolean bulldozerDown;
 
-    private Servo door;
-    private boolean doorBtn;
-    private boolean doorDown = false;
+    private Servo          bd;
+    private StupidStateful bdState = new StupidStateful<>(false);
+    private boolean        bdOn    = false;
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
-        SharedTelemetry.telemetry = telemetry;
+        Shared.telemetry = telemetry;
 
         telemetry.addData("Status", "Initialized");
 
@@ -53,43 +48,26 @@ public class Robob extends OpMode
         DcMotor bl              = hardwareMap.get(DcMotor.class, "bl");
         DcMotor br              = hardwareMap.get(DcMotor.class, "br");
         List<DcMotor> wheelList = new ArrayList<>(Arrays.asList(fl, fr, bl, br));
-        this.wheels = new WeirdWheels(wheelList);
+        wheels = new WackyWheels(wheelList);
 
-        // intake
         DcMotor i1               = hardwareMap.get(DcMotor.class, "i1");
+        i1.setDirection(DcMotorSimple.Direction.REVERSE);
         DcMotor i2               = hardwareMap.get(DcMotor.class, "i2");
-        List<DcMotor> intakeList = new ArrayList<>(Arrays.asList(i1,i2));
-        this.intake = new ManyMotors(intakeList);
+        List<DcMotor> intakeList = new ArrayList<>(Arrays.asList(i1, i2));
+        intake                   = new MoldovanMotors(intakeList);
 
-        // arm
-        DcMotor shoulder     = hardwareMap.get(DcMotor.class, "shoulder");
         DcMotor actuator     = hardwareMap.get(DcMotor.class, "actuator");
-        CRServo elbow        = hardwareMap.crservo.get("elbow");
-        Servo lGrip          = hardwareMap.get(Servo.class, "lGrip");
-        Servo rGrip          = hardwareMap.get(Servo.class, "rGrip");
-        lGrip.setDirection(Servo.Direction.REVERSE);
-        rGrip.setDirection(Servo.Direction.FORWARD);
-        List<Servo> grippers = new ArrayList<>(Arrays.asList(lGrip,rGrip));
-        this.arm = new AwesomeArm(shoulder,actuator,elbow,grippers);
+        DcMotor slides       = hardwareMap.get(DcMotor.class, "slides");
+        Servo push1          = hardwareMap.get(Servo.class, "push1");
+        Servo push2          = hardwareMap.get(Servo.class, "push2");
+        SillyServos pushers  = new SillyServos(Arrays.asList(push1, push2));
+        Servo grip1          = hardwareMap.get(Servo.class, "grip1");
+        Servo grip2          = hardwareMap.get(Servo.class, "grip2");
+        SillyServos grippers = new SillyServos(Arrays.asList(grip1, grip2));
+        Servo extender       = hardwareMap.get(Servo.class, "extender");
+        arm = new AbsentmindedAfghani(actuator, slides, pushers, grippers, extender);
 
-        lGrip.setPosition(0);
-        rGrip.setPosition(0);
-
-        DcMotor i = intake.motors.get(0);
-
-        i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        while (i.getCurrentPosition() != 0) {}
-        i.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        i.setPower(0);
-        i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        Servo bd                 = hardwareMap.get(Servo.class, "bd");
-        bd.setDirection(Servo.Direction.FORWARD);
-        this.bulldozer = bd;
-
-        this.door = hardwareMap.get(Servo.class, "door");
+        //bd = hardwareMap.get(Servo.class,"bd");
     }
 
     /*
@@ -99,9 +77,8 @@ public class Robob extends OpMode
     public void loop() {
         wheelControl();
         intakeControl();
+        //bdControl();
         armControl();
-        bulldozerControl();
-        doorControl();
     }
 
     /*
@@ -117,71 +94,44 @@ public class Robob extends OpMode
         double vertical = gamepad1.left_stick_y;
         double rotate   = gamepad1.right_stick_x;
 
-        wheels.setVelocityXYR(strafe,vertical,rotate);
+        wheels.setVelocityXYR(strafe, vertical, rotate);
         wheels.moveMecanum();
-
     }
 
     private void intakeControl() {
-        boolean a = gamepad1.a;
-        if(a && a != intakeBtn) {
-            intakeOpen = !intakeOpen;
-        }
-        intakeBtn = a;
+        boolean toggle = gamepad1.a;
+        intakeState.set(toggle);
 
-        if(intakeOpen) {
-            intake.move(new ArrayList<>(Collections.nCopies(2, 0.5)));
-        } else {
-            intake.move(new ArrayList<>(Collections.nCopies(2, 0.0)));
+        if(toggle && intakeState.getState() == StupidStateful.State.Edited) {
+            intakeState.accept();
+            intakeOn = !intakeOn;
         }
+
+        if(intakeOn) intake.setPower(1);
+        else intake.stop();
+    }
+
+    private void bdControl() {
+        boolean toggle = gamepad1.x;
+        bdState.set(toggle);
+
+        if(toggle && bdState.getState() == StupidStateful.State.Edited) {
+            bdState.accept();
+            bdOn = !bdOn;
+        }
+
+        if(bdOn) bd.setPosition(0.5);
+        else bd.setPosition(0);
     }
 
     private void armControl() {
-        double shoulderPwr = gamepad2.left_stick_y;
-        arm.moveShoulder(shoulderPwr*0.6);
+        double actuatorPow = gamepad2.left_stick_y;
+        double slidesPow   = gamepad2.left_trigger - gamepad2.right_trigger;
 
-        double actuatorUp = gamepad2.right_trigger-gamepad2.left_trigger;
-        arm.moveActuator(actuatorUp);
-
-        double elbowPwr = gamepad2.right_stick_y;
-        arm.moveElbow(elbowPwr);
-
-        boolean b = gamepad2.b;
-        if(b && b != grippersBtn) {
-            arm.toggleGrippers();
-        }
-        grippersBtn = b;
-    }
-
-    private void bulldozerControl() {
-        boolean y = gamepad1.y;
-        if(y && y != bulldozerBtn) {
-            bulldozerDown = !bulldozerDown;
-        }
-        bulldozerBtn = y;
-
-        if(bulldozerDown) {
-            bulldozer.setPosition(0.3);
-        } else {
-            bulldozer.setPosition(0.8);
-        }
-
-        if(gamepad1.dpad_up) {
-            bulldozer.setPosition(0);
-        }
-    }
-
-    private void doorControl() {
-        boolean x = gamepad1.x;
-        if(x && x != doorBtn) {
-            doorDown = !doorDown;
-        }
-        doorBtn = x;
-
-        if(doorDown) {
-            door.setPosition(0.4);
-        } else {
-            door.setPosition(0.0);
-        }
+        arm.actuatorCtrl(actuatorPow);
+        arm.slidesCtrl(slidesPow);
+        arm.pushCtrl(new ArrayList<>(Arrays.asList(gamepad2.left_bumper, gamepad2.right_bumper)));
+        arm.extenderCtrl(gamepad2.b);
+        arm.grippersCtrl(gamepad2.a);
     }
 }

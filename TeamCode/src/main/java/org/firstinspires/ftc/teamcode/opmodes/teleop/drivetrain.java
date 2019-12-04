@@ -4,30 +4,25 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.parts.AwesomeArm;
-import org.firstinspires.ftc.teamcode.parts.ManyMotors;
-import org.firstinspires.ftc.teamcode.parts.SeveralServos;
-import org.firstinspires.ftc.teamcode.parts.WeirdWheels;
-import org.firstinspires.ftc.teamcode.util.glob.SharedTelemetry;
+import org.firstinspires.ftc.teamcode.parts.WackyWheels;
+import org.firstinspires.ftc.teamcode.util.glob.Shared;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @TeleOp(name="drivetrain", group="Game Controller")
 public class drivetrain extends OpMode
 {
-    private WeirdWheels wheels;
+    private WackyWheels wheels;
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
-        SharedTelemetry.telemetry = telemetry;
+        Shared.telemetry = telemetry;
 
         telemetry.addData("Status", "Initialized");
 
@@ -41,7 +36,7 @@ public class drivetrain extends OpMode
         bl.setDirection(DcMotorSimple.Direction.FORWARD);
         br.setDirection(DcMotorSimple.Direction.REVERSE);
         List<DcMotor> wheelList = new ArrayList<>(Arrays.asList(fl, fr, bl, br));
-        this.wheels = new WeirdWheels(wheelList);
+        this.wheels = new WackyWheels(wheelList);
     }
 
     /*

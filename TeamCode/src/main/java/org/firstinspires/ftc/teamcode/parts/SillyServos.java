@@ -1,15 +1,12 @@
 package org.firstinspires.ftc.teamcode.parts;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-
-import org.firstinspires.ftc.teamcode.util.glob.SharedTelemetry;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SeveralServos {
+public class SillyServos {
     // list of motors
     public final List<Servo> servos;
 
@@ -19,7 +16,7 @@ public class SeveralServos {
     /**
      * @param servos        list of motors
      */
-    public SeveralServos(List<Servo> servos) {
+    public SillyServos(List<Servo> servos) {
         this.servos = servos;
         values = new double[servos.size()];
     }

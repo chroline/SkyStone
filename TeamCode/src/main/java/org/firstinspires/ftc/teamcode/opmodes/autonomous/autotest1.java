@@ -2,42 +2,23 @@ package org.firstinspires.ftc.teamcode.opmodes.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.firstinspires.ftc.teamcode.parts.AwesomeArm;
-import org.firstinspires.ftc.teamcode.parts.ManyMotors;
-import org.firstinspires.ftc.teamcode.parts.SeveralServos;
-import org.firstinspires.ftc.teamcode.parts.WeirdWheels;
-import org.firstinspires.ftc.teamcode.util.glob.SharedTelemetry;
+import org.firstinspires.ftc.teamcode.parts.WackyWheels;
+import org.firstinspires.ftc.teamcode.util.glob.Shared;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 @Autonomous(name="autotest1 yay", group="Game Controller")
 public class autotest1 extends LinearOpMode {
     boolean parkBridgeSide     = false;
-    WeirdWheels.Side side      = WeirdWheels.Side.LEFT;
+    WackyWheels.Side side      = WackyWheels.Side.LEFT;
     boolean execCollectStones  = false;
     boolean execMoveFoundation = false;
 
-    private WeirdWheels wheels;
+    private WackyWheels wheels;
 
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
@@ -74,7 +55,7 @@ public class autotest1 extends LinearOpMode {
         wheels.stop();
     }
     public void registerMotors() {
-        SharedTelemetry.telemetry = telemetry;
+        Shared.telemetry = telemetry;
 
         telemetry.addData("Status", "Initialized");
 
@@ -85,7 +66,7 @@ public class autotest1 extends LinearOpMode {
         DcMotor br = hardwareMap.get(DcMotor.class, "br");
         List<DcMotor> wheelList = new ArrayList<>(Arrays.asList(fl, fr, bl, br));
 
-        this.wheels = new WeirdWheels(wheelList);
+        this.wheels = new WackyWheels(wheelList);
         this.wheels.setSide(this.side);
 
         fl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
